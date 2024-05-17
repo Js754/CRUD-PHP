@@ -2,90 +2,106 @@
 
     $errors = array();
 
-    if($_SERVER["REQUEST_METHOD"] == "POST")
+    include "../Includes/Functions.php";
+
+    function ValidateForm($PostData, &$errors)
     {
-        if(isset($_POST["txtData"]) and !empty($_POST["txtData"]))
+        $Data = [];
+
+        if(isset($PostData["txtNome"]) && !empty($PostData["txtNome"]))
         {
-            $Data = filter_input(INPUT_POST, "txtData", FILTER_SANITIZE_SPECIAL_CHARS);
+            $Data["Name"] = filter_var($PostData["txtNome"], FILTER_SANITIZE_SPECIAL_CHARS);
         }
         else
         {
-            $sv_err = "Preencha O Campo Da Data Corretamente!";
-            array_push($errors, $sv_err);
+            $errors[] = "Preencha o campo do Nome corretamente!";
         }
         //
-        if(isset($_POST["txtHora"]) and !empty($_POST["txtHora"]))
+        if(isset($PostData["txtCPF"]) && !empty($PostData["txtCPF"]))
         {
-            $Hora = filter_input(INPUT_POST, "txtHora", FILTER_SANITIZE_SPECIAL_CHARS);
-        }
-        else
-        {
-            $sv_err = "Preencha O Campo Da Hora Corretamente!";
-            array_push($errors, $sv_err);
-        }
-        //
-        if(isset($_POST["txtCliente"]) and !empty($_POST["txtCliente"]))
-        {
-            $Client = filter_input(INPUT_POST, "txtCliente", FILTER_SANITIZE_SPECIAL_CHARS);
-            //
-            if(mb_strlen($_POST["txtCliente"]) < 3)
+            if(mb_strlen($PostData["txtCPF"]) < 11)
             {
-                $sv_err = "O Nome Do Cliente Precisa Ter No Mínimo 3 Letras!";
-                array_push($errors, $sv_err);
+                $errors[] = "O CPF precisa conter 11 caracteres totais!";
+            }
+            else
+            {
+                $Data["CPF"] = filter_var($PostData["txtCPF"], FILTER_SANITIZE_SPECIAL_CHARS);
             }
         }
         else
         {
-            $sv_err = "Preencha O Campo Do Cliente Corretamente!";
-            array_push($errors, $sv_err);
+            $errors[] = "Preencha o campo do CPF corretamente!";
         }
         //
-        if(isset($_POST["txtTelefone"]) and !empty($_POST["txtTelefone"]))
+        if(isset($PostData["txtCPF"]) && !empty($PostData["txtCPF"]))
         {
-            $Tel = filter_input(INPUT_POST, "txtTelefone", FILTER_SANITIZE_SPECIAL_CHARS);
+            if(mb_strlen($PostData["txtCPF"]) < 11)
+            {
+                $errors[] = "O CPF precisa conter 11 caracteres totais!";
+            }
+            else
+            {
+                $Data["CPF"] = filter_var($PostData["txtCPF"], FILTER_SANITIZE_SPECIAL_CHARS);
+            }
         }
         else
         {
-            $sv_err = "Preencha O Campo do Telefone Corretamente!";
-            array_push($errors, $sv_err);
+            $errors[] = "Preencha o campo do CPF corretamente!";
         }
         //
-        if(isset($_POST["txtStatus"]) and !empty($_POST["txtStatus"]))
+        if(isset($PostData["txtCelular"]) && !empty($PostData["txtCelular"]))
         {
-            $Status = filter_input(INPUT_POST, "txtStatus", FILTER_SANITIZE_SPECIAL_CHARS);
+            if(mb_strlen($PostData["txtCelular"]) < 11)
+            {
+                $errors[] = "O Telefone precisa ter no mínimo 11 caracteres!";
+            }
+            else
+            {
+                $Data["Celular"] = filter_var($PostData["txtCelular"], FILTER_SANITIZE_SPECIAL_CHARS);
+            }
         }
         else
         {
-            $sv_err = "Preencha O Campo Do Status Corretamente!";
-            array_push($errors, $sv_err);
+            $errors[] = "Preencha o campo do CPF corretamente!";
         }
-    }
-    else
-    {
-        $sv_err = "Método De Requisição Inválido! Use o Método: (POST)";
-        array_push($errors, $sv_err);
+        //
+        if(isset($PostData["txtSalario"]) && !empty($PostData["txtSalario"])) 
+        {
+            $Data['Salario'] = filter_var($PostData["txtSalario"], FILTER_SANITIZE_SPECIAL_CHARS);
+        } 
+        else 
+        {
+            $errors[] = "Preencha o campo do Salário corretamente!";
+        }
+        //
+        return $Data;
     }
 
-    if(count($errors) == 0)
+    if($_SERVER["REQUEST_METHOD"] == "POST")
     {
-        require_once "../Core/Connection.php";
+        $DataForm = ValidateForm($_POST, $errors);
 
-        try
+        if(empty($errors))
         {
-            $sql = "INSERT INTO Agendamentos SET Data = :Data, Hora = :Hora, Cliente = :Client, Telefone = :Tel, Status = :Status";
-            $insert = $PDO->prepare($sql);
-            //
-            $insert->bindValue(":Data", $Data);
-            $insert->bindValue(":Hora", $Hora);
-            $insert->bindValue(":Client", $Client);
-            $insert->bindValue(":Tel", $Tel);
-            $insert->bindValue(":Status", $Status);
-            //
-            $insert->execute();
-        }
-        catch (PDOException $error)
-        {
-            array_push($errors, "Falha Ao Inserir Os Registros Ao Banco de Dados: Erro: " . $error->getMessage());
+            require_once "../Core/Connection.php";
+
+            try
+            {
+                $sql = "INSERT INTO Agendamentos SET Data = :Data, Hora = :Hora, Cliente = :Client, Telefone = :Tel, Status = :Status";
+                $insert = $PDO->prepare($sql);
+                //
+                $insert->bindValue(":Data", $Data);
+                $insert->bindValue(":Hora", $Hora);
+                $insert->bindValue(":Client", $Client);
+                $insert->bindValue(":Tel", $Tel);
+                $insert->bindValue(":Status", $Status);
+                //
+                $insert->execute();
+            }
+            catch (PDOException $error)
+            {
+                array_push($errors, "Falha Ao Inserir Os Registros Ao Banco de Dados: Erro: " . $error->getMessage());
+            }
         }
     }
 ?>
